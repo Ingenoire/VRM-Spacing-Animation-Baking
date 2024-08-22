@@ -48,6 +48,7 @@ def adjust_bone_pair_spacing(armature, bone_l_name, bone_r_name, space_value, af
 class SpacingAdjusterOperator(bpy.types.Operator):
     bl_idname = "object.adjust_spacing"
     bl_label = "Adjust Spacing"
+    bl_description = "Adjusts the spacing of the selected bones according to the value chosen above."
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -79,6 +80,7 @@ class SpacingAdjusterOperator(bpy.types.Operator):
 class SelectPhysicsBonesOperator(bpy.types.Operator):
     bl_idname = "object.select_physics_bones"
     bl_label = "Select Physics Bones"
+    bl_description = "This selects all the possible physics bones that could exist on your VRM model."
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -108,6 +110,7 @@ class SelectPhysicsBonesOperator(bpy.types.Operator):
 class DeleteHighlightedBonesOperator(bpy.types.Operator):
     bl_idname = "object.delete_highlighted_bones"
     bl_label = "Delete Highlighted Bones from Animation"
+    bl_description = "This removes the physics bones from the current animation, which is often the case when retargeting animations to the VRM model."
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -144,6 +147,7 @@ class DeleteHighlightedBonesOperator(bpy.types.Operator):
 class ToggleVRMSpringBonePhysicsOperator(bpy.types.Operator):
     bl_idname = "object.toggle_vrm_spring_bone_physics"
     bl_label = "Enable/Disable VRM Spring Bone Physics"
+    bl_description = "Before baking the physics, you need to enable VRM Spring Bone Physics so that blender can bake the physics. After baking, if you need to make a looping animation, turn this off before proceeding."
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -185,6 +189,7 @@ class ToggleVRMSpringBonePhysicsOperator(bpy.types.Operator):
 class AdjustPlaybackAndBakeOperator(bpy.types.Operator):
     bl_idname = "object.adjust_playback_and_bake"
     bl_label = "Adjust Playback Range and Bake Animation"
+    bl_description = "Bakes the hair physics into the animation and also changes the playback range of the scene to that of the animation. If you don't need a looping animation, this is the final step."
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
@@ -227,6 +232,7 @@ class AdjustPlaybackAndBakeOperator(bpy.types.Operator):
 class LoopifyPhysicsOperator(bpy.types.Operator):
     bl_idname = "object.loopify_physics"
     bl_label = "Loopify Physics"
+    bl_description = "Deletes the front or back of the animation's physics and inserts the opposite side's last or first frame of physics bones, making the animation loop seamlessly. The more frame easing there is, the more frames are deleted, at the cost of less precise physics for a longer portion of the animation. This is the final step for looping animations."
     bl_options = {'REGISTER', 'UNDO'}
 
     frame_easing: bpy.props.IntProperty(
@@ -337,38 +343,44 @@ class SpacingPanel(bpy.types.Panel):
         layout = self.layout
 
         # ------------------- Spacing Section -------------------
-        layout.label(text="Bone Spacing Adjuster")
-        layout.prop(context.scene, 'selected_bone_pair', text="Bone Pair")
-        layout.prop(context.scene, 'affect_left_prop', text="Affect Left")
-        layout.prop(context.scene, 'affect_right_prop', text="Affect Right")
-        layout.prop(context.scene, 'space_value_prop', text="Spacing Value")
-        layout.operator("object.adjust_spacing", text="Adjust Spacing")
+        layout.label(text="Bone Spacing Adjuster", icon='ARMATURE_DATA')
+        
+        row = layout.row(align=True)
+        row.prop(context.scene, 'selected_bone_pair', text="Bone Pair")
+        row = layout.row(align=True)
+        row.prop(context.scene, 'affect_left_prop', text="Affect Left", icon='TRIA_LEFT')
+        row.prop(context.scene, 'affect_right_prop', text="Affect Right", icon='TRIA_RIGHT')
 
-        layout.separator()
+        layout.prop(context.scene, 'space_value_prop', text="Spacing Value", icon='ARROW_LEFTRIGHT')
+        layout.operator("object.adjust_spacing", text="Adjust Spacing", icon='MODIFIER')
+
+        layout.separator(factor=0.5)
 
         # ------------------- Animation Helper Section -------------------
-        layout.label(text="Animation Helper")
-        layout.operator("object.select_physics_bones", text="Select Physics Bones")
-        layout.operator("object.delete_highlighted_bones", text="Delete Highlighted Bones from Animation")
+        layout.label(text="Animation Helper", icon='ANIM')
+        
+        row = layout.row(align=True)
+        row.operator("object.select_physics_bones", text="Select Physics Bones", icon='BONE_DATA')
+        row.operator("object.delete_highlighted_bones", text="Delete Highlighted Bones", icon='TRASH')
 
-        # Add the toggle button for VRM spring bone physics with status indicator
-        layout.separator()
+        # Toggle button for VRM spring bone physics with status indicator
+        layout.separator(factor=0.5)
         is_enabled = context.scene.vrm_spring_bone_physics_enabled
         icon = 'CHECKBOX_HLT' if is_enabled else 'CHECKBOX_DEHLT'
         status_text = "VRM Spring Bone Physics ON" if is_enabled else "VRM Spring Bone Physics OFF"
-        
-        row = layout.row()
-        row.operator("object.toggle_vrm_spring_bone_physics", text=status_text, icon=icon)
+        layout.operator("object.toggle_vrm_spring_bone_physics", text=status_text, icon=icon)
 
-        # Add the new button for adjusting playback and baking
-        layout.separator()
-        layout.operator("object.adjust_playback_and_bake", text="Adjust Playback and Bake Animation")
+        layout.separator(factor=0.5)
 
-        # Add the new button for loopifying physics
-        layout.separator()
-        layout.prop(context.scene, "frame_selection", text="Frame Selection")
-        layout.prop(context.scene, "loopify_frame_easing", text="Frame Easing from Loop")
-        layout.operator("object.loopify_physics", text="Loopify Physics")
+        # Adjust Playback and Bake
+        layout.operator("object.adjust_playback_and_bake", text="Adjust Playback & Bake", icon='RENDER_ANIMATION')
+
+        # Loopify Physics
+        layout.separator(factor=0.5)
+        layout.prop(context.scene, "frame_selection", text="Frame Selection", icon='TIME')
+        layout.prop(context.scene, "loopify_frame_easing", text="Frame Easing", icon='IPO_ELASTIC')
+        layout.operator("object.loopify_physics", text="Loopify Physics", icon='CON_FOLLOWPATH')
+
 
 # ----------------------------- Register/Unregister Functions -----------------------------
 
