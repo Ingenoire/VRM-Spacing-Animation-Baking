@@ -31,7 +31,8 @@ def adjust_bone_pair_spacing(armature, bone_l_name, bone_r_name, space_value, af
     anim_data = armature.animation_data
 
     if anim_data is not None and anim_data.action is not None:
-        for f in range(int(anim_data.action.frame_range[0]), int(anim_data.action.frame_range[1])):
+        # Ensure the final frame is included by using range with frame_range[1] + 1
+        for f in range(int(anim_data.action.frame_range[0]), int(anim_data.action.frame_range[1]) + 1):
             bpy.context.scene.frame_set(f)
 
             if affect_left and bone_l_name in armature.pose.bones:
