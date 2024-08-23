@@ -25,3 +25,4 @@ A blender add-on for VRM models that offers Mixamo-like arm/leg spacing options,
 
 ## Credits
 - ChatGPT, Copilot, for the AI assisted coding.
+- Showcased model is made of elements from ～Starry Sea～☆彡 KOKONE (https://milkpeach.booth.pm/) & Serena Kupopo (https://kupopo.booth.pm/)
