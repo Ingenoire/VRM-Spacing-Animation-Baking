@@ -16,7 +16,11 @@ A blender add-on for VRM models that offers Mixamo-like arm/leg spacing options,
   - **Delete Highlighted Bones (from Animation)**: Deletes the selected bones from the current animation, freeing them and letting them be affected by the VRM add-on's spring bones enabled setting.
   - **VRM Spring Bone Physics ON/OFF**: A quick toggle to enable/disable VRM physics in Blender (courtesy of the VRM add-on) in order to give Blender the tools to record the physics simulation!
   - **Adjust Playback & Bake**: Bakes the hair physics into the animation directly. You can then turn off VRM Spring Bone physics, and you'll notice that the hair still moves (in a predetermined way now) even without physics on!
-- A looping tool to make baked spring bones physics loop (decently) well enough!
+
+| Without Loopify | With Loopify |
+| --- | --- |
+| ![img](https://i.imgur.com/ukhU2cT.gif) | ![img](https://i.imgur.com/Mo2YZKY.gif) |
+- **A looping tool to make baked spring bones physics loop (decently) well enough!**
   - Let's you select between using the first or last frame of physics as a looping point, and a user customizable range of frames to ease the animation's transition from the end of the loop to the start of the next!
 
 ## Credits
