@@ -14,7 +14,7 @@ A blender add-on for VRM models that offers Mixamo-like arm/leg spacing options,
 | --- | --- |
 | ![img](https://i.imgur.com/CCpRayr.gif) | ![img](https://i.imgur.com/VULfK9g.gif) |
 
-- Adjust the bone spacing in the current action (animation) for the legs, arms, and shoulders: just like Mixamo's "Character Arm-Space" setting!
+- Adjust the bone spacing in the current action (animation) for the legs, arms, and shoulders, *even on baked animations*: just like Mixamo's "Character Arm-Space" setting!
   - You can also independantly affect only one side!
   - Great for tweaking animations to better suit your character, such as with large dresses or outfits!
  
