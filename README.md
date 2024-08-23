@@ -8,15 +8,24 @@ A blender add-on for VRM models that offers Mixamo-like arm/leg spacing options,
 ![img](https://i.imgur.com/Cx8IKyS.png)
 
 ## Features
+
+# SPACING
+| Without Spacing | With Spacing |
+| --- | --- |
+| ![img](https://i.imgur.com/CCpRayr.gif) | ![img](https://i.imgur.com/VULfK9g.gif) |
+
 - Adjust the bone spacing in the current action (animation) for the legs, arms, and shoulders: just like Mixamo's "Character Arm-Space" setting!
   - You can also independantly affect only one side!
   - Great for tweaking animations to better suit your character, such as with large dresses or outfits!
+ 
+# BAKE PHYSICS TOOLSET
 - An animation helper suite to bake your animation's spring bones (physics bones) like hair and bust into the animation, for external programs that don't support "easily" physics systems.
   - **Select Physics Bones**: Selects all the possible VRoid VRM bones that are used for physics. No more pattern selecting over and over!
   - **Delete Highlighted Bones (from Animation)**: Deletes the selected bones from the current animation, freeing them and letting them be affected by the VRM add-on's spring bones enabled setting.
   - **VRM Spring Bone Physics ON/OFF**: A quick toggle to enable/disable VRM physics in Blender (courtesy of the VRM add-on) in order to give Blender the tools to record the physics simulation!
   - **Adjust Playback & Bake**: Bakes the hair physics into the animation directly. You can then turn off VRM Spring Bone physics, and you'll notice that the hair still moves (in a predetermined way now) even without physics on!
 
+# LOOPIFY PHYSICS
 | Without Loopify | With Loopify |
 | --- | --- |
 | ![img](https://i.imgur.com/ukhU2cT.gif) | ![img](https://i.imgur.com/Mo2YZKY.gif) |
