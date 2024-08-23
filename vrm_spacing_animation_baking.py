@@ -1,10 +1,10 @@
 bl_info = {
-    "name": "Arm and Leg Spacing Adjuster with Animation Helper",
+    "name": "VRM-Spacing-Animation-Baking",
     "author": "ingenoire",
     "version": (1, 7),
     "blender": (2, 80, 0),
-    "location": "View3D > Sidebar > Spacing Panel",
-    "description": "Adjusts spacing for bones and provides animation tools",
+    "location": "View3D > Sidebar > VRM Bake",
+    "description": "Adjusts spacing for VRM bones and provides animation baking tools.",
     "category": "Animation",
 }
 
@@ -334,11 +334,11 @@ class LoopifyPhysicsOperator(bpy.types.Operator):
 
 # Example UI Panel code snippet for adding new controls
 class SpacingPanel(bpy.types.Panel):
-    bl_label = "Spacing and Animation Helper"
+    bl_label = "VRM Space Anime Baking"
     bl_idname = "OBJECT_PT_spacing"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
-    bl_category = 'Spacing'
+    bl_category = 'VRM Space Anime Baking'
 
     def draw(self, context):
         layout = self.layout
