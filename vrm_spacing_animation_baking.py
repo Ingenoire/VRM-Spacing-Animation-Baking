@@ -236,14 +236,7 @@ class LoopifyPhysicsOperator(bpy.types.Operator):
     bl_description = "Deletes the front or back of the animation's physics and inserts the opposite side's last or first frame of physics bones, making the animation loop seamlessly. The more frame easing there is, the more frames are deleted, at the cost of less precise physics for a longer portion of the animation. This is the final step for looping animations."
     bl_options = {'REGISTER', 'UNDO'}
 
-    frame_easing: bpy.props.IntProperty(
-        name="Frame Easing from Loop",
-        description="Number of frames to delete before looping",
-        default=10,
-        min=1,
-        max=100
-    )
-
+    # Use the frame easing defined in the scene properties
     def execute(self, context):
         armature = context.object
 
@@ -262,9 +255,9 @@ class LoopifyPhysicsOperator(bpy.types.Operator):
         start_frame = int(frame_range[0])
         end_frame = int(frame_range[1])
 
-        # Get user input for frame selection
+        # Get user input for frame selection and easing value from context
         frame_selection = context.scene.frame_selection
-        frame_easing = self.frame_easing
+        frame_easing = context.scene.loopify_frame_easing  # Correctly fetching frame easing from the scene property
 
         # Determine the copy frame and delete frame range based on user selection
         if frame_selection == 'LAST_FRAME':
@@ -278,6 +271,7 @@ class LoopifyPhysicsOperator(bpy.types.Operator):
             delete_range_end = end_frame
             paste_frame = end_frame + 1
 
+        # Log debug information
         print(f"Action Frame Range: {start_frame} to {end_frame}")
         print(f"Frame Selection: {frame_selection}")
         print(f"Frame Easing: {frame_easing}")
@@ -330,6 +324,7 @@ class LoopifyPhysicsOperator(bpy.types.Operator):
                     fcurve.keyframe_points.remove(keyframe)
 
         return {'FINISHED'}
+
 
 
 # Example UI Panel code snippet for adding new controls
