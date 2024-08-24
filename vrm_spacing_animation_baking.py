@@ -1,7 +1,7 @@
 bl_info = {
     "name": "VRM-Spacing-Animation-Baking",
     "author": "ingenoire",
-    "version": (1, 7),
+    "version": (1, 9),
     "blender": (2, 80, 0),
     "location": "View3D > Sidebar > VRM Bake",
     "description": "Adjusts spacing for VRM bones and provides animation baking tools.",
@@ -20,10 +20,19 @@ bone_pairs = [
     ("LOWER_LEG", "J_Bip_L_LowerLeg", "J_Bip_R_LowerLeg", "Lower Leg")
 ]
 
-# ----------------------------- Spacing Adjustment Functions -----------------------------
+# Add a toggle property for choosing spacing axis
+bpy.types.Scene.spacing_axis = bpy.props.EnumProperty(
+    name="Spacing Axis",
+    description="Choose which axis to apply the spacing on",
+    items=[
+        ('SIDEWAYS', "Space Sideways (Z-Axis)", ""),
+        ('FORWARD_BACKWARD', "Space Forward/Backward (Y-Axis)", "")
+    ],
+    default='SIDEWAYS'
+)
 
-# General function to adjust bone pair spacing
-def adjust_bone_pair_spacing(armature, bone_l_name, bone_r_name, space_value, affect_left, affect_right):
+# Updated bone pair spacing function
+def adjust_bone_pair_spacing(armature, bone_l_name, bone_r_name, space_value, affect_left, affect_right, axis):
     if not affect_left and not affect_right:
         return {'CANCELLED'}
 
@@ -35,17 +44,20 @@ def adjust_bone_pair_spacing(armature, bone_l_name, bone_r_name, space_value, af
         for f in range(int(anim_data.action.frame_range[0]), int(anim_data.action.frame_range[1]) + 1):
             bpy.context.scene.frame_set(f)
 
+            # Determine which axis to adjust
+            axis_index = 2 if axis == 'SIDEWAYS' else 1  # z-axis = 2, y-axis = 1
+
             if affect_left and bone_l_name in armature.pose.bones:
                 bone_l = armature.pose.bones[bone_l_name]
-                bone_l.rotation_euler.z += space_rad
-                bone_l.keyframe_insert(data_path="rotation_euler", index=2)
+                bone_l.rotation_euler[axis_index] += space_rad
+                bone_l.keyframe_insert(data_path="rotation_euler", index=axis_index)
 
             if affect_right and bone_r_name in armature.pose.bones:
                 bone_r = armature.pose.bones[bone_r_name]
-                bone_r.rotation_euler.z -= space_rad
-                bone_r.keyframe_insert(data_path="rotation_euler", index=2)
+                bone_r.rotation_euler[axis_index] -= space_rad
+                bone_r.keyframe_insert(data_path="rotation_euler", index=axis_index)
 
-# Operator to adjust spacing based on bone selection from dropdown
+# Update the operator to include the axis parameter
 class SpacingAdjusterOperator(bpy.types.Operator):
     bl_idname = "object.adjust_spacing"
     bl_label = "Adjust Spacing"
@@ -59,6 +71,7 @@ class SpacingAdjusterOperator(bpy.types.Operator):
 
         affect_left = context.scene.affect_left_prop
         affect_right = context.scene.affect_right_prop
+        spacing_axis = context.scene.spacing_axis
 
         if not affect_left and not affect_right:
             self.report({'WARNING'}, "You must select at least one bone (Left or Right) to adjust.")
@@ -68,7 +81,7 @@ class SpacingAdjusterOperator(bpy.types.Operator):
         bone_pair = next((bp for bp in bone_pairs if bp[0] == bone_pair_key), None)
         if bone_pair:
             bone_l_name, bone_r_name = bone_pair[1], bone_pair[2]
-            adjust_bone_pair_spacing(armature, bone_l_name, bone_r_name, space_value, affect_left, affect_right)
+            adjust_bone_pair_spacing(armature, bone_l_name, bone_r_name, space_value, affect_left, affect_right, spacing_axis)
         else:
             self.report({'ERROR'}, "Invalid bone pair selected.")
             return {'CANCELLED'}
@@ -340,7 +353,7 @@ class SpacingPanel(bpy.types.Panel):
 
         # ------------------- Spacing Section -------------------
         layout.label(text="Bone Spacing Adjuster", icon='ARMATURE_DATA')
-        
+
         row = layout.row(align=True)
         row.prop(context.scene, 'selected_bone_pair', text="Bone Pair")
         row = layout.row(align=True)
@@ -348,13 +361,17 @@ class SpacingPanel(bpy.types.Panel):
         row.prop(context.scene, 'affect_right_prop', text="Affect Right", icon='TRIA_RIGHT')
 
         layout.prop(context.scene, 'space_value_prop', text="Spacing Value", icon='ARROW_LEFTRIGHT')
+
+        # Add the new axis toggle
+        layout.prop(context.scene, 'spacing_axis', text="Spacing Axis")
+
         layout.operator("object.adjust_spacing", text="Adjust Spacing", icon='MODIFIER')
 
         layout.separator(factor=0.5)
 
         # ------------------- Animation Helper Section -------------------
         layout.label(text="Animation Helper", icon='ANIM')
-        
+
         row = layout.row(align=True)
         row.operator("object.select_physics_bones", text="Select Physics Bones", icon='BONE_DATA')
         row.operator("object.delete_highlighted_bones", text="Delete Highlighted Bones", icon='TRASH')
@@ -377,7 +394,6 @@ class SpacingPanel(bpy.types.Panel):
         layout.prop(context.scene, "loopify_frame_easing", text="Frame Easing", icon='IPO_ELASTIC')
         layout.operator("object.loopify_physics", text="Loopify Physics", icon='CON_FOLLOWPATH')
 
-
 # ----------------------------- Register/Unregister Functions -----------------------------
 
 def register():
@@ -389,36 +405,40 @@ def register():
     bpy.utils.register_class(ToggleVRMSpringBonePhysicsOperator)
     bpy.utils.register_class(LoopifyPhysicsOperator)
 
-    # Property for selecting bone pairs
     bpy.types.Scene.selected_bone_pair = bpy.props.EnumProperty(
         name="Bone Pair",
         description="Select the bone pair to adjust",
-        items=[(bp[0], bp[3], "") for bp in bone_pairs],  # (enum value, label, description)
+        items=[(bp[0], bp[3], "") for bp in bone_pairs],
         default='SHOULDER'
     )
 
-    # Properties for affecting left/right bones
     bpy.types.Scene.affect_left_prop = bpy.props.BoolProperty(
-        name="Affect Left", 
-        description="Affect the left bone", 
+        name="Affect Left",
+        description="Affect the left bone",
         default=True
     )
     bpy.types.Scene.affect_right_prop = bpy.props.BoolProperty(
-        name="Affect Right", 
-        description="Affect the right bone", 
+        name="Affect Right",
+        description="Affect the right bone",
         default=True
     )
-
-    # Single float property for spacing value
     bpy.types.Scene.space_value_prop = bpy.props.FloatProperty(
-        name="Spacing Value", 
-        description="Spacing value in degrees", 
-        default=5.0, 
-        min=-20.0, 
+        name="Spacing Value",
+        description="Spacing value in degrees",
+        default=5.0,
+        min=-20.0,
         max=20.0
     )
+    bpy.types.Scene.spacing_axis = bpy.props.EnumProperty(
+        name="Spacing Axis",
+        description="Choose which axis to apply the spacing on",
+        items=[
+            ('SIDEWAYS', "Space Sideways (Z-Axis)", ""),
+            ('FORWARD_BACKWARD', "Space Forward/Backward (Y-Axis)", "")
+        ],
+        default='SIDEWAYS'
+    )
 
-    # Add new properties for loopify physics
     bpy.types.Scene.frame_selection = bpy.props.EnumProperty(
         name="Frame Selection",
         description="Choose the frame to base the loop from",
@@ -429,17 +449,16 @@ def register():
 
     bpy.types.Scene.loopify_frame_easing = bpy.props.IntProperty(
         name="Frame Easing from Loop",
-        description="Number of frames to delete before looping",
-        default=10,
-        min=1,
-        max=100
+        description="Number of frames to ease out physics when looping",
+        default=4
     )
 
     bpy.types.Scene.vrm_spring_bone_physics_enabled = bpy.props.BoolProperty(
-        name="VRM Spring Bone Physics Enabled",
-        description="Tracks if VRM Spring Bone Physics is enabled",
-        default=False
+        name="VRM Spring Bone Physics",
+        description="Toggle VRM Spring Bone Physics ON/OFF",
+        default=True
     )
+
 
 def unregister():
     bpy.utils.unregister_class(SpacingAdjusterOperator)
@@ -449,14 +468,16 @@ def unregister():
     bpy.utils.unregister_class(AdjustPlaybackAndBakeOperator)
     bpy.utils.unregister_class(ToggleVRMSpringBonePhysicsOperator)
     bpy.utils.unregister_class(LoopifyPhysicsOperator)
-    
+
     del bpy.types.Scene.selected_bone_pair
     del bpy.types.Scene.affect_left_prop
     del bpy.types.Scene.affect_right_prop
     del bpy.types.Scene.space_value_prop
+    del bpy.types.Scene.spacing_axis
     del bpy.types.Scene.frame_selection
     del bpy.types.Scene.loopify_frame_easing
     del bpy.types.Scene.vrm_spring_bone_physics_enabled
+
 
 if __name__ == "__main__":
     register()
