@@ -47,15 +47,21 @@ def adjust_bone_pair_spacing(armature, bone_l_name, bone_r_name, space_value, af
             # Determine which axis to adjust
             axis_index = 2 if axis == 'SIDEWAYS' else 1  # z-axis = 2, y-axis = 1
 
+            # Adjust left bone if selected and keyframe exists
             if affect_left and bone_l_name in armature.pose.bones:
                 bone_l = armature.pose.bones[bone_l_name]
-                bone_l.rotation_euler[axis_index] += space_rad
-                bone_l.keyframe_insert(data_path="rotation_euler", index=axis_index)
+                fcurve = anim_data.action.fcurves.find(data_path="pose.bones[\"{}\"].rotation_euler".format(bone_l_name), index=axis_index)
+                if fcurve and any(kp.co[0] == f for kp in fcurve.keyframe_points):
+                    bone_l.rotation_euler[axis_index] += space_rad
+                    bone_l.keyframe_insert(data_path="rotation_euler", index=axis_index)
 
+            # Adjust right bone if selected and keyframe exists
             if affect_right and bone_r_name in armature.pose.bones:
                 bone_r = armature.pose.bones[bone_r_name]
-                bone_r.rotation_euler[axis_index] -= space_rad
-                bone_r.keyframe_insert(data_path="rotation_euler", index=axis_index)
+                fcurve = anim_data.action.fcurves.find(data_path="pose.bones[\"{}\"].rotation_euler".format(bone_r_name), index=axis_index)
+                if fcurve and any(kp.co[0] == f for kp in fcurve.keyframe_points):
+                    bone_r.rotation_euler[axis_index] -= space_rad
+                    bone_r.keyframe_insert(data_path="rotation_euler", index=axis_index)
 
 # Update the operator to include the axis parameter
 class SpacingAdjusterOperator(bpy.types.Operator):
@@ -157,15 +163,15 @@ class DeleteHighlightedBonesOperator(bpy.types.Operator):
 
         return {'FINISHED'}
 
-# Operator to toggle VRM spring bone physics
+
+# Operator to toggle VRM Spring Bone Physics
 class ToggleVRMSpringBonePhysicsOperator(bpy.types.Operator):
     bl_idname = "object.toggle_vrm_spring_bone_physics"
     bl_label = "Enable/Disable VRM Spring Bone Physics"
-    bl_description = "Before baking the physics, you need to enable VRM Spring Bone Physics so that blender can bake the physics. After baking, if you need to make a looping animation, turn this off before proceeding."
+    bl_description = "Enable VRM Spring Bone Physics for baking; disable before creating looping animations."
     bl_options = {'REGISTER', 'UNDO'}
 
     def execute(self, context):
-
         # Locate the Armature in the scene
         armature = None
         for obj in bpy.context.scene.objects:
@@ -182,23 +188,24 @@ class ToggleVRMSpringBonePhysicsOperator(bpy.types.Operator):
         armature.select_set(True)
         
         # Access the VRM Spring Bone settings
-        # Assuming VRM add-on has a global property or method to toggle physics
         try:
-            # Example: If the VRM add-on uses a custom property like `spring_bone_enabled`
-            vrm_module = armature.data.vrm_addon_extension  # This is just a placeholder
+            # Toggle the spring bone physics status
+            vrm_module = armature.data.vrm_addon_extension  # Placeholder for actual VRM property path
             enabled = not getattr(vrm_module.spring_bone1, 'enable_animation', False)
             vrm_module.spring_bone1.enable_animation = enabled
             
-            # Update the custom property to reflect the status
+            # Update the scene property to reflect the toggle status
             context.scene.vrm_spring_bone_physics_enabled = enabled
 
             status = "enabled" if enabled else "disabled"
             self.report({'INFO'}, f"VRM Spring Bone Physics {status}.")
 
         except AttributeError:
-            self.report({'ERROR'}, "VRM Spring Bone system not available")
+            self.report({'ERROR'}, "VRM Spring Bone system not available.")
+            return {'CANCELLED'}
 
         return {'FINISHED'}
+
     
 class AdjustPlaybackAndBakeOperator(bpy.types.Operator):
     bl_idname = "object.adjust_playback_and_bake"
