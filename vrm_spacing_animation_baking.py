@@ -463,7 +463,7 @@ def register():
     bpy.types.Scene.vrm_spring_bone_physics_enabled = bpy.props.BoolProperty(
         name="VRM Spring Bone Physics",
         description="Toggle VRM Spring Bone Physics ON/OFF",
-        default=True
+        default=False
     )
 
 
